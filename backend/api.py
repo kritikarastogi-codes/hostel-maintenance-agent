@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -6,6 +6,7 @@ from main import understand_complaint, get_priority, get_team
 
 app = FastAPI()
 
+# Allow frontend to connect
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -13,10 +14,9 @@ app.add_middleware(
         "http://localhost:5500",
     ],
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
-allow_origins=["*"]
 
 
 class Complaint(BaseModel):
@@ -31,6 +31,19 @@ def home():
     return {
         "message": "Hostel Maintenance Agent is running"
     }
+
+
+# Handle browser CORS preflight request
+@app.options("/complaints")
+def options_complaints():
+    return Response(
+        content="",
+        headers={
+            "Access-Control-Allow-Origin": "http://127.0.0.1:5500",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        },
+    )
 
 
 @app.post("/complaints")
